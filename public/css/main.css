@@ -1,0 +1,30 @@
+#clear-playlist-btn {
+	width: 100%;
+	margin: 20px 0;
+}
+
+.ctrl-bar{
+	margin: 10px 0;
+}
+
+.ctrl-bar .btn-group *{
+	
+	font-size: small;
+}
+
+
+.fast-backward-btn {
+	background-color: purple;
+}
+
+.backward-btn {
+	background-color: purple;
+}
+
+.forward-btn {
+	background-color: blue;
+}
+
+.fast-forward-btn {
+	background-color: blue;
+}

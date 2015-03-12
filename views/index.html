@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+			<!-- Bootstrap -->
+		<link rel="stylesheet" href="/css/bootstrap/bootstrap.min.css">
+
+			<!-- Font Awesome -->
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="/css/main.css">
+		
+		<script src="/lib/socket.io/socket.io.js"></script>
+		<script src="/lib/player.js"></script>
+		
+	</head>
+
+	<body>
+		<header class="container-fluid">
+			<h3>
+				<small>CSCI4140: Assignment2</small>
+				<div id="qrcode" class="pull-right hidden-xs hidden-sm"></div>
+				<br />
+				YouTube Remote
+			</h3>
+		</header>
+		<hr />
+		<div class="container col-md-8 hidden-xs hidden-sm">
+			<div class="panel panel-primary">
+				<div class="panel-heading">YouTube Player</div>
+				<div class="panel-body">
+					<div id="player"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="container col-md-4">
+			<div class="panel panel-primary">
+				<div class="panel-heading">YouTube Remote Control</div>
+				<div class="panel-body">
+
+					<div class="btn-group btn-group-justified ctrl-bar" role="group" aria-label="...">
+						<div class='btn-group' role='group'>
+							<button id="play-btn" class="btn btn-default btn-lg">
+								<i class="fa fa-play"></i>
+								<span class="visible-sm-inline">PLAY</span>
+							</button>
+						</div>
+						<div class='btn-group' role='group'>
+							<button id="pause-btn" class="btn btn-default btn-lg">
+								<i class="fa fa-pause"></i>
+								<span class="visible-sm-inline">PAUSE</span>
+							</button>
+						</div>
+						<div class='btn-group' role='group'>
+							<button id="stop-btn" class="btn btn-default btn-lg">
+								<i class="fa fa-stop"></i>
+								<span class="visible-sm-inline">STOP</span>
+							</button>
+						</div>
+					</div>
+
+					<div class="btn-group btn-group-justified ctrl-bar" role="group" aria-label="...">
+						<div class='btn-group' role='group'>
+							<button class="btn btn-default btn-lg play-btn">
+								<i class="fa fa-fast-backward"></i>
+								<span class="visible-sm-inline">PREVIOUS</span>
+							</button>
+						</div>
+						<div class='btn-group' role='group'>
+							<button id="rewind-btn" class="btn btn-default btn-lg">
+								<i class="fa fa-backward"></i>
+								<span class="visible-sm-inline">REWIND</span>
+							</button>
+						</div>
+						<div class='btn-group' role='group'>
+							<button id="fast-forward-btn" class="btn btn-default btn-lg">
+								<i class="fa fa-forward"></i>
+								<span class="visible-sm-inline">FAST FORWARD</span>
+							</button>
+						</div>
+						<div class='btn-group' role='group'>
+							<button class="btn btn-default btn-lg">
+								<i class="fa fa-fast-forward"></i>
+								<span class="visible-sm-inline">NEXT</span>
+							</button>
+						</div>
+					</div>
+
+					<div class="btn-group btn-group-justified ctrl-bar" role="group" aria-label="...">
+						<div class='btn-group' role='group'>
+							<button id="mute-btn" class="btn btn-default btn-lg">
+								<i class="fa fa-bell-slash"></i>
+								<span class="visible-sm-inline">MUTE</span>
+							</button>
+						</div>
+						<div class='btn-group' role='group'>
+							<button id="unmute-btn" class="btn btn-default btn-lg">
+								<i class="fa fa-bell"></i>
+								<span class="visible-sm-inline">UNMUTE</span>
+							</button>
+						</div>
+					</div>
+
+
+				</div>
+			</div>
+
+			<div class="panel panel-primary">
+				<div class="panel-heading">Playlist</div>
+				<div class="panel-body">
+					<div id="playlist" class="list-group">
+						<!-- playlist here
+						<a data-vid="ckRg5Hg0zmE" href="#" class="video list-group-item">
+							item1
+							<span class="pull-right remove-playlist-btn">
+								<i class="fa fa-times-circle"></i>
+							</span>
+						</a>
+						<a data-vid="SX4hoEUsPUY" href="#" class="video list-group-item">
+							item2
+							<span class="pull-right remove-playlist-btn">
+								<i class="fa fa-times-circle"></i>
+							</span>
+						</a>
+						//-->
+					</div>
+
+					<div class="form-inline">
+						<form>
+							<input id="playlist-vid-input" type="text" class="form-control" placeholder="Enter Video ID or URL"/>
+							<button id="add-playlist-btn" class="btn btn-default"><i class="fa fa-plus"></i></button>
+						</form>
+					</div>
+
+					<button id="clear-playlist-btn" class="btn btn-default">
+						CLEAR ALL
+					</button>
+				</div>
+			</div>
+		</div>
+	</body>
+
+</html>
+
+
