@@ -31,9 +31,11 @@ socket.on('command', function(command){
 				break;
 
 			var state = player.getPlayerState();
-			if (state === -1){
+			console.log(state, player.videoId);
+
+			if (state !== 1 && state !== 2 && state !== 3){
 				var ele = document.querySelector('#playlist > a');
-				if (ele !== undefined){
+				if (ele){
 					ele.click();
 				}
 			} else{
@@ -183,7 +185,9 @@ function onYouTubeIframeAPIReady() {
 
 function onPlayerReady(e) {
 	if (player){
-		document.querySelector('#playlist > a').classList.add('active');
+		var ele = document.querySelector('#playlist > a')
+		if (ele)
+			ele.classList.add('active');
 	}
 }
 
