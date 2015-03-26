@@ -78,7 +78,10 @@ io.on('connection', function(socket){
 			case 'unmute':
 				console.log('Room %s unmute', socket.room.id);
 				io.to(socket.room.id).emit('command', {act: 'unmute'});
-				break;								
+				break;	
+			case 'select':
+				console.log('Room %s select %s', socket.room.id, command.vid);
+				io.to(socket.room.id).emit('command', {act: 'select', vid: command.vid});				
 		}
 	});
 
@@ -129,10 +132,10 @@ io.on('connection', function(socket){
 		}
 	});
 
-	socket.on('upload', function(playlist){
+	socket.on('upload', function(playlist, active){
 		console.log('Room %s upload playlist', socket.room.id);
 
-		io.to(socket.room.id).emit('download', playlist);
+		io.to(socket.room.id).emit('download', playlist, active);
 	});
 
 

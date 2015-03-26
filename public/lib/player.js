@@ -4,7 +4,7 @@ var firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 var socket;
-var player;
+var player = null;
 var playlist = (function(){
 	var p = localStorage.getItem('playlist');
 	if (!p) {
@@ -27,33 +27,85 @@ socket.emit('sync');
 socket.on('command', function(command){
 	switch(command.act){
 		case 'play':
-			player.playVideo();
+			if (!player)
+				break;
+
+			var state = player.getPlayerState();
+			if (state === -1){
+				var ele = document.querySelector('#playlist > a');
+				if (ele !== undefined){
+					ele.click();
+				}
+			} else{
+				player.playVideo();
+			}
 			break;
+
 		case 'pause':
+			if (!player)
+				break;
+
 			player.pauseVideo();	
 			break;
 		case 'stop':
+			if (!player)
+				break;
+
 			player.stopVideo();
 			break;
 		case 'rewind':
+			if (!player)
+				break;
+
 			var currentTime = player.getCurrentTime();
 			player.seekTo(currentTime - 2.0);
 			break;
 		case 'previous':
-			var item = document.querySelector("#playlist > a.active");
+			var ele = document.querySelector("#playlist > a.active").previousSibling;
+
+			if (ele && ele.nodeName === "A"){
+				ele.click();
+			}
 			break;
 		case 'next':
+			var ele = document.querySelector("#playlist > a.active").nextSibling;
+
+			if (ele && ele.nodeName === "A"){
+				ele.click();
+			}
+
 			break;
 		case 'fast-forward':
+			if (!player)
+				break;
+
 			var currentTime = player.getCurrentTime();
 			player.seekTo(currentTime + 2.0);
 			break;
 		case 'mute':
-			player.mute();
+			if (player)
+				player.mute();
 			break;	
 		case 'unmute':
-			player.unMute();
-			break;							
+			if (player)
+				player.unMute();
+			break;	
+		case 'select':
+			if (player)
+				player.loadVideoById(command.vid);
+
+			var selector = '#playlist > a[data-vid="' + command.vid + '"]';
+			var ele = document.querySelector(selector);
+
+			var parent = ele.parentNode;
+			var list = parent.querySelectorAll('a.active');
+			for (var i = 0; i < list.length; i++){
+				list[i].classList.remove("active");
+			}
+			ele.classList.add("active");	 
+
+			break;
+
 	}
 });
 
@@ -79,13 +131,18 @@ socket.on('clear', function(){
 });
 
 socket.on('upload', function(){
-	socket.emit('upload', playlist);
+	var ele = document.querySelector("#playlist > a.active");
+	var active = null;
+
+	if (ele)
+		active = ele.getAttribute("data-vid");
+
+	socket.emit('upload', playlist, active);
 	console.log('upload', playlist);
 });
 
-socket.on('download', function(data){
-	console.log('download', data);
-	playlist = data;
+socket.on('download', function(playlist, active){
+	console.log('download', playlist);
 	setPlaylistStorage(playlist);
 
 	var node = document.querySelector("#playlist");
@@ -93,6 +150,11 @@ socket.on('download', function(data){
 	playlist.forEach(function(video){
 		addItemToPlaylist(video.title, video.vid);
 	});
+
+	var selector = '#playlist > a[data-vid="' + active + '"]';
+	var ele = document.querySelector(selector);
+	if (ele)
+		ele.classList.add("active");
 });
 
 function onYouTubeIframeAPIReady() {
@@ -104,7 +166,8 @@ function onYouTubeIframeAPIReady() {
 		}
 	})();
 
-	player = new YT.Player('player', {
+	if (window.innerWidth >= 992){
+		player = new YT.Player('player', {
 		height: '390',
 		width: '640',
 		playerVars: {'controls': 0},
@@ -114,9 +177,14 @@ function onYouTubeIframeAPIReady() {
 			'onStateChange': onPlayerStateChange
 		}
 	});
+	}
+
 }
 
 function onPlayerReady(e) {
+	if (player){
+		document.querySelector('#playlist > a').classList.add('active');
+	}
 }
 
 function onPlayerStateChange(e) {
@@ -139,6 +207,22 @@ function stopVideo(){
 	socket.emit('command', {act: 'stop'});
 }
 
+function nextVideo(){
+	//socket.emit('command', {act: 'next'});
+	var ele = document.querySelector("#playlist > a.active").nextSibling;
+	if (ele){
+		ele.click();
+	}
+}
+
+function prevVideo(){
+	//socket.emit('command', {act: 'previous'});
+	var ele = document.querySelector("#playlist > a.active").previousSibling;
+	if (ele){
+		ele.click();
+	}
+}
+
 function fastForwardVideo(){
 	socket.emit('command', {act: 'fast-forward'});
 }
@@ -157,15 +241,9 @@ function unmuteVideo(){
 
 function selectVideo(e){
 	e.preventDefault();
-	player.loadVideoById(this.getAttribute("data-vid"));
-	
+	var vid = this.getAttribute("data-vid");
 
-	var parent = this.parentNode;
-	var list = parent.querySelectorAll('a.active');
-	for (var i = 0; i < list.length; i++){
-		list[i].className = list[i].className.replace(/\bactive\b/,'');
-	}
-	this.className += ' active';
+	socket.emit('command', {act: 'select', vid: vid});
 }
 
 function removeVideo(e){
@@ -230,6 +308,9 @@ function addListeners(){
 	document.querySelector("#pause-btn").addEventListener("click", pauseVideo);
 	document.querySelector("#stop-btn").addEventListener("click", stopVideo);
 
+	document.querySelector("#prev-btn").addEventListener("click", prevVideo);
+	document.querySelector("#next-btn").addEventListener("click", nextVideo);
+
 	document.querySelector("#fast-forward-btn").addEventListener("click", fastForwardVideo);
 	document.querySelector("#rewind-btn").addEventListener("click", rewindVideo);
 
@@ -260,6 +341,7 @@ function addQRCode(){
 
 // Equivalent to $(document).ready()
 document.addEventListener("DOMContentLoaded", function(){
+
 	addListeners();
 	addQRCode();
 });
