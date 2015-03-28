@@ -3,7 +3,7 @@ var app = express();
 var request = require('request');
 
 app.use(express.static("public"));
-
+var roomId = 0;
 
 app.get('/session/:roomId', function (req, res){
 	res.sendFile(__dirname + '/views/index.html');
@@ -12,12 +12,14 @@ app.get('/session/:roomId', function (req, res){
 app.get('/', function (req, res){
 	var max = 65535, min = 0;
 
-	roomId = Math.floor(Math.random() * (max - min + 1)) + min;
+	//roomId = Math.floor(Math.random() * (max - min + 1)) + min;
+	
 	res.redirect('/session/' + roomId);
+	roomId += 1;
 });
 
 
-var port = process.env.OPENSHIFT_NODEJS_PORT || 3000;
+var port = process.env.OPENSHIFT_NODEJS_PORT || 8000;
 var host = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 var server = app.listen(port, host, function(){
 	console.log( 'Listening on http://%s:%s...', host, port);
@@ -85,7 +87,7 @@ io.on('connection', function(socket){
 		}
 	});
 
-	socket.on('add', function(vid){
+	socket.on('add', function(vid, err){
 		console.log('Room %s add video: [%s]', socket.room.id, vid);
 
 		var url = 'http://www.youtube.com/oembed?url=http://www.youtube.com/watch?v=' + vid;
@@ -93,9 +95,10 @@ io.on('connection', function(socket){
 			if (!err && res.statusCode == 200){
 				var title = JSON.parse(body).title;
 				console.log(title);
-				io.to(socket.room.id).emit('add', {title: title, vid: vid});
+				io.to(socket.room.id).emit('add', {title: title, vid: vid}, err);
 			} else {
 				console.log('Room %s Failed to add item: [%s], err = %s', socket.room.id, vid, err);
+				io.to(socket.room.id).emit('add', {title: title, vid: vid}, res.statusCode);
 			};
 		});
 	});

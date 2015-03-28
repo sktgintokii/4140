@@ -16,8 +16,8 @@ var playlist = (function(){
 }) ();
 var roomId;
 
-socket = io();
-var re = /(\/session\/)([0-9]{5})/;
+socket = io('ws://' + window.location.hostname + ':8000/');
+var re = /(\/session\/)([0-9]+)/;
 roomId = re.exec(document.location.pathname)[2];
 
 
@@ -31,7 +31,6 @@ socket.on('command', function(command){
 				break;
 
 			var state = player.getPlayerState();
-			console.log(state, player.videoId);
 
 			if (state !== 1 && state !== 2 && state !== 3){
 				var ele = document.querySelector('#playlist > a');
@@ -63,6 +62,7 @@ socket.on('command', function(command){
 			player.seekTo(currentTime - 2.0);
 			break;
 		case 'previous':
+
 			var ele = document.querySelector("#playlist > a.active").previousSibling;
 
 			if (ele && ele.nodeName === "A"){
@@ -111,7 +111,12 @@ socket.on('command', function(command){
 	}
 });
 
-socket.on('add', function(item){
+socket.on('add', function(item, err){
+	if (err){
+		alert('[Error ' + err + '] Invalid video ID');
+		return false;
+	}
+
 	addItemToPlaylist(item.title, item.vid);
 	playlist.push({vid: item.vid, title: item.title});
 	setPlaylistStorage(playlist);
@@ -120,6 +125,9 @@ socket.on('add', function(item){
 socket.on('remove', function(index){
 	var list = document.querySelectorAll("#playlist > a");
 	document.querySelector("#playlist").removeChild(list[index]);
+
+	playlist.splice(index);
+	setPlaylistStorage(playlist);
 });
 
 socket.on('clear', function(){
@@ -192,7 +200,10 @@ function onPlayerReady(e) {
 }
 
 function onPlayerStateChange(e) {
-
+	// video ends
+	if (player.getPlayerState() === 0){
+		nextVideo();
+	}
 }
 
 function setPlaylistStorage(playlist){
@@ -213,6 +224,10 @@ function stopVideo(){
 
 function nextVideo(){
 	//socket.emit('command', {act: 'next'});
+	var state = player.getPlayerState();
+	if (state < 0)
+		return;
+
 	var ele = document.querySelector("#playlist > a.active").nextSibling;
 	if (ele){
 		ele.click();
@@ -221,6 +236,10 @@ function nextVideo(){
 
 function prevVideo(){
 	//socket.emit('command', {act: 'previous'});
+	var state = player.getPlayerState();
+	if (state < 0)
+		return;
+
 	var ele = document.querySelector("#playlist > a.active").previousSibling;
 	if (ele){
 		ele.click();
@@ -283,7 +302,7 @@ function addItemToPlaylist(title, vid){
 	a.setAttribute("data-vid", vid);
 	a.setAttribute("data-title", title);
 	a.className = "list-group-item";
-	a.innerHTML = title;
+	a.innerHTML = '[' + vid + '] ' + title; 
 	a.addEventListener("click", selectVideo);
 
 	a.appendChild(btn);
